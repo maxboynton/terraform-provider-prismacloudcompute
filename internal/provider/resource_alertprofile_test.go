@@ -91,12 +91,6 @@ func testAccCheckAlertProfileDestroy(s *terraform.State) error {
 
 func testAccAlertProfileConfig(name string) string {
 	return fmt.Sprintf(`
-	provider "prismacloudcompute" {
-		console_url = "https://us-east1.cloud.twistlock.com/us-1-111573457"
-		username    = "17aa4ffa-417c-4c5f-95c7-4cbae38bab53"
-		password    = "PvloZv58MSlPebdCECZ1HI5crPo="
-	}
-	
 	resource "prismacloudcompute_alertprofile" "test" {
 		name               = "%s"
 		enable_immediate_vulnerabilities_alerts = false
