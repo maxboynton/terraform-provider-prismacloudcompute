@@ -19,7 +19,7 @@ func TestAccAlertProfileWebhook(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAlertProfileDestroy,
+		CheckDestroy: testAccAlertProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAlertProfileConfig(name),
@@ -68,7 +68,7 @@ func testAccCheckAlertProfileWebhookAttributes(o *alertprofile.AlertProfile, nam
 	}
 }
 
-func testAccCheckAlertProfileDestroy(s *terraform.State) error {
+func testAccAlertProfileDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {

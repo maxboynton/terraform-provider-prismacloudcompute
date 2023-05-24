@@ -28,7 +28,7 @@ func resourceCredentials() *schema.Resource {
 			},
 			"account_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Account identifier (username, access key, etc.).",
 			},
 			"api_token": {
@@ -98,6 +98,13 @@ func resourceCredentials() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Plain text value for the secret. Note: marshalling to JSON will convert to an encrypted value",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// If the value of "encrypted" is not empty, suppress diff
+								if d.Get("secret").([]interface{})[0].(map[string]interface{})["encrypted"].(string) != "" {
+									return true
+								}
+								return false
+							},
 						},
 					},
 				},
@@ -109,7 +116,7 @@ func resourceCredentials() *schema.Resource {
 			},
 			"type": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Credential type.",
 			},
 			"url": { // GitHub Enterprise

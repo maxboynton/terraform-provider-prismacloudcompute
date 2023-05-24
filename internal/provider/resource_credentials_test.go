@@ -5,15 +5,16 @@ import (
 	"testing"
 
 	"github.com/PaloAltoNetworks/terraform-provider-prismacloudcompute/internal/api"
+	"github.com/PaloAltoNetworks/terraform-provider-prismacloudcompute/internal/api/auth"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestCredentialsConfig(t *testing.T) {
-	fmt.Printf("\n\nStart TestAccCredentialsConfig")
-	var o group.Group
-	id := fmt.Sprintf("tf%s", acctest.RandString(6))
+func TestAccCredentialsConfig(t *testing.T) {
+	var o auth.Credential
+	id := fmt.Sprintf("test-%s", acctest.RandString(6))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,14 +24,14 @@ func TestCredentialsConfig(t *testing.T) {
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
@@ -39,8 +40,8 @@ func TestCredentialsConfig(t *testing.T) {
 }
 
 func TestCredentialsNetwork(t *testing.T) {
-	var o group.Group
-	id := fmt.Sprintf("tf%s", acctest.RandString(6))
+	var o auth.Credential
+	id := fmt.Sprintf("test-%s", acctest.RandString(6))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,14 +51,14 @@ func TestCredentialsNetwork(t *testing.T) {
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
@@ -66,8 +67,8 @@ func TestCredentialsNetwork(t *testing.T) {
 }
 
 func TestCredentialsAuditEvent(t *testing.T) {
-	var o group.Group
-	id := fmt.Sprintf("tf%s", acctest.RandString(6))
+	var o auth.Credential
+	id := fmt.Sprintf("test-%s", acctest.RandString(6))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -77,14 +78,14 @@ func TestCredentialsAuditEvent(t *testing.T) {
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
 			{
 				Config: testAccCredentialsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCredentialsExists("prismacloudcompute_credentials.test", &o),
+					testAccCheckCredentialExists("prismacloudcompute_credential.test", &o),
 					testAccCheckCredentialsAttributes(&o, id, true),
 				),
 			},
@@ -92,10 +93,8 @@ func TestCredentialsAuditEvent(t *testing.T) {
 	})
 }
 
-func testCredentialsExists(n string, o *group.Group) resource.TestCheckFunc {
+func testAccCheckCredentialExists(n string, o *auth.Credential) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// return fmt.Errorf("What is the name: %s", o.GroupId)
-
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Resource not found: %s", n)
@@ -106,61 +105,63 @@ func testCredentialsExists(n string, o *group.Group) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*api.Client)
-		lo, err := Credentials.Get(*client)
+		id := rs.Primary.ID
+		lo, err := auth.GetCredential(*client, id)
 		if err != nil {
 			return fmt.Errorf("Error in get: %s", err)
 		}
-		*o = lo
+
+		*o = *lo
 
 		return nil
 	}
 }
 
-// func testCredentialsAttributes(o *group.Group, id string, learningDisabled bool) resource.TestCheckFunc {
-// 	return func(s *terraform.State) error {
-// 		if o.GroupId != id {
-// 			return fmt.Errorf("\n\nGroupId is %s, expected %s", o.GroupId, id)
-// 		} else {
-// 			fmt.Printf("\n\nName is %s", o.GroupId)
-// 		}
+func testAccCheckCredentialsAttributes(o *auth.Credential, id string, learningDisabled bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// if o.Id != id {
+		// 	return fmt.Errorf("\n\nId is %s, expected %s", o.Id, id)
+		// } else {
+		// 	fmt.Printf("\n\nId is %s", o.Id)
+		// }
 
-// 		if o.LearningDisabled != learningDisabled {
-// 			return fmt.Errorf("LearningDisabled is %t, expected %t", o.LearningDisabled, learningDisabled)
-// 		}
+		return nil
+	}
+}
 
-// 		return nil
-// 	}
-// }
+func testAccCredentialsDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*api.Client)
 
-// func testCredentialsDestroy(s *terraform.State) error {
-// 	/*	client := testAccProvider.Meta().(*api.Client)
+	for _, rs := range s.RootModule().Resources {
 
-// 		for _, rs := range s.RootModule().Resources {
+		if rs.Type != "prismacloudcompute_credential" {
+			continue
+		}
 
-// 			if rs.Type != "prismacloudcompute_credentials" {
-// 				continue
-// 			}
+		if rs.Primary.ID != "" {
+			name := rs.Primary.ID
+			if err := auth.DeleteCredential(*client, name); err == nil {
+				return fmt.Errorf("Object %q still exists", name)
+			}
+		}
+		return nil
+	}
 
-// 			if rs.Primary.ID != "" {
-// 				name := rs.Primary.ID
-// 				if err := group.Delete(client, name); err == nil {
-// 					return fmt.Errorf("Object %q still exists", name)
-// 				}
-// 			}
-// 			return nil
-// 		}
-// 	*/
-// 	return nil
-// }
+	return nil
+}
 
-// func testCredentialsConfig(id string) string {
-// 	var buf bytes.Buffer
-// 	buf.Grow(500)
+func testAccCredentialsConfig(id string) string {
+	return fmt.Sprintf(`
+	resource "prismacloudcompute_credential" "test" {
+		name			= "%s"
+		type		= "basic"
+		account_id	= "tf-test-credential"
+		api_token {
 
-// 	buf.WriteString(fmt.Sprintf(`
-// resource "prismacloudcompute_credentials" "test" {
-//     name = %q
-// }`, id))
-
-// 	return buf.String()
-// }
+		}
+		secret {
+			plain	  = "testpw"
+		}
+	}
+	`, id)
+}
