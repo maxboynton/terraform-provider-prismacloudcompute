@@ -118,9 +118,10 @@ func testAccCheckCustomComplianceExists(n string, o *policy.CustomCompliance) re
 
 func testAccCheckCustomComplianceAttributes(o *policy.CustomCompliance, name string, description string, color string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// if o.Name != name {
-		// 	return fmt.Errorf("\n\nName is %s, expected %s", o.Name, name)
-		// } else {
+		if o.Name != name {
+			return fmt.Errorf("\n\nName is %s, expected %s", o.Name, name)
+		}
+		// else {
 		// 	fmt.Printf("\n\nName is %s", o.Name)
 		// }
 

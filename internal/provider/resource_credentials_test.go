@@ -119,9 +119,10 @@ func testAccCheckCredentialExists(n string, o *auth.Credential) resource.TestChe
 
 func testAccCheckCredentialsAttributes(o *auth.Credential, id string, learningDisabled bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// if o.Id != id {
-		// 	return fmt.Errorf("\n\nId is %s, expected %s", o.Id, id)
-		// } else {
+		if o.Id != id {
+			return fmt.Errorf("\n\nId is %s, expected %s", o.Id, id)
+		}
+		// else {
 		// 	fmt.Printf("\n\nId is %s", o.Id)
 		// }
 

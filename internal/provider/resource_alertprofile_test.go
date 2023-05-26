@@ -58,12 +58,12 @@ func testAccCheckAlertProfileExists(n string, o *alertprofile.AlertProfile) reso
 
 func testAccCheckAlertProfileWebhookAttributes(o *alertprofile.AlertProfile, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// if o.Name != name {
-		// 	return fmt.Errorf("\nName is %s, expected %s", o.Name, name)
-		// } else {
+		if o.Name != name {
+			return fmt.Errorf("\nName is %s, expected %s", o.Name, name)
+		}
+		// else {
 		// 	fmt.Printf("\nName is %s", o.Name)
 		// }
-
 		return nil
 	}
 }

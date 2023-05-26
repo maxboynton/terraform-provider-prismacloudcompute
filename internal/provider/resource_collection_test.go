@@ -118,9 +118,10 @@ func testAccCheckCollectionExists(n string, o *collection.Collection) resource.T
 
 func testAccCheckCollectionAttributes(o *collection.Collection, name string, description string, color string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// if o.Name != name {
-		// 	return fmt.Errorf("\n\nName is %s, expected %s", o.Name, name)
-		// } else {
+		if o.Name != name {
+			return fmt.Errorf("\n\nName is %s, expected %s", o.Name, name)
+		}
+		// else {
 		// 	fmt.Printf("\n\nName is %s", o.Name)
 		// }
 
