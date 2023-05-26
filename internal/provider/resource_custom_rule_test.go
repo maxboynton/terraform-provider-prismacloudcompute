@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
@@ -14,9 +13,8 @@ import (
 )
 
 func TestAccCustomRuleConfig(t *testing.T) {
-	fmt.Printf("\n\nStart TestAccCustomRuleConfig")
 	var o rule.CustomRule
-	name := fmt.Sprintf("tf%s", acctest.RandString(6))
+	name := fmt.Sprintf("test-%s", acctest.RandString(6))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -97,8 +95,6 @@ func TestAccCustomRuleAuditEvent(t *testing.T) {
 
 func testAccCheckCustomRuleExists(n string, o *rule.CustomRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// return fmt.Errorf("What is the name: %s", o.Name)
-
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Resource not found: %s", n)
@@ -110,11 +106,11 @@ func testAccCheckCustomRuleExists(n string, o *rule.CustomRule) resource.TestChe
 
 		client := testAccProvider.Meta().(*api.Client)
 		name := rs.Primary.ID
-		lo, err := rule.Get(*client, name)
+		lo, err := rule.GetCustomRuleByName(*client, name)
 		if err != nil {
 			return fmt.Errorf("Error in get: %s", err)
 		}
-		o = lo
+		*o = *lo
 
 		return nil
 	}
@@ -124,16 +120,13 @@ func testAccCheckCustomRuleAttributes(o *rule.CustomRule, name string, descripti
 	return func(s *terraform.State) error {
 		if o.Name != name {
 			return fmt.Errorf("\n\nName is %s, expected %s", o.Name, name)
-		} else {
-			fmt.Printf("\n\nName is %s", o.Name)
 		}
+		// else {
+		// 	fmt.Printf("\n\nName is %s", o.Name)
+		// }
 
 		if o.Description != description {
 			return fmt.Errorf("Description is %s, expected %s", o.Description, description)
-		}
-
-		if o.Color != color {
-			return fmt.Errorf("Color type is %q, expected %q", o.Color, color)
 		}
 
 		return nil
@@ -151,7 +144,7 @@ func testAccCustomRuleDestroy(s *terraform.State) error {
 
 		if rs.Primary.ID != "" {
 			name := rs.Primary.ID
-			if err := rule.Delete(*client, name); err == nil {
+			if _, err := rule.GetCustomRuleByName(*client, name); err == nil {
 				return fmt.Errorf("Object %q still exists", name)
 			}
 		}
@@ -162,13 +155,16 @@ func testAccCustomRuleDestroy(s *terraform.State) error {
 }
 
 func testAccCustomRuleConfig(name string) string {
-	var buf bytes.Buffer
-	buf.Grow(500)
-
-	buf.WriteString(fmt.Sprintf(`
-resource "prismacloudcompute_custom_rules" "test" {
-    name = %q
-}`, name))
-
-	return buf.String()
+	return fmt.Sprintf(`
+	resource "prismacloudcompute_custom_rule" "test" {
+		name = "%s"
+		type = "waas-request"
+		script = "req.headers[\"Range\"] contains /(?i)bytes[\\S\\s]*-[\\S\\s]*\\d{16,}/"
+		description = "description"
+		message = "Created by Terraform"
+		min_version = "21.08.525"
+		vuln_ids = [
+			"CVE-2015-1635"
+		]
+	}`, name)
 }
